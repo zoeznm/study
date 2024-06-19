@@ -1,21 +1,46 @@
-<!-- ./public/html/index.html -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Signup Form</title>
+  <title>User Management</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
-  <h2>Signup Form</h2>
-  <form method="POST" action="/signup">
-    <label for="username">Username:</label><br>
-    <input type="text" id="username" name="username" required><br>
-    <label for="password" id="pw">Password:</label><br>
-    <input type="password" id="password" name="password" required><br><br>
+  <h1>User Management System</h1>
+
+  <!-- 회원가입 폼 -->
+  <h2>Signup</h2>
+  <form id="signupForm">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required>
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required>
     <button type="submit">Sign Up</button>
   </form>
+
+  <!-- 사용자 목록 조회 -->
+  <h2>User List</h2>
+  <button id="getUsersButton">Get Users</button>
+  <ul id="userList"></ul>
+
+  <!-- 비밀번호 수정 폼 -->
+  <h2>Update Password</h2>
+  <form id="updatePasswordForm">
+    <label for="updateUsername">Username:</label>
+    <input type="text" id="updateUsername" name="username" required>
+    <label for="newPassword">New Password:</label>
+    <input type="password" id="newPassword" name="newPassword" required>
+    <button type="submit">Update Password</button>
+  </form>
+
+  <!-- 사용자 삭제 폼 -->
+  <h2>Delete User</h2>
+  <form id="deleteUserForm">
+    <label for="deleteUsername">Username:</label>
+    <input type="text" id="deleteUsername" name="username" required>
+    <button type="submit">Delete User</button>
+  </form>
+<script src="../js/script.js"></script>
 </body>
 </html>

@@ -2,15 +2,18 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const querystring = require('querystring');
+const sqlite3 = require('sqlite3').verbose();
 
-// 데이터베이스 역할을 할 간단한 객체
-const users = [];
+// SQLite 데이터베이스 파일 생성 및 연결
+const db = new sqlite3.Database('users.db');
 
-// 서버 생성
+db.serialize(() => {
+  db.run('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, password TEXT)');
+});
+
 const server = http.createServer((req, res) => {
   if (req.method === 'GET') {
     if (req.url === '/') {
-      // 루트 경로로 접근할 경우 회원가입 폼 제공
       const filePath = path.join(__dirname, 'public', 'html', 'index.html');
       fs.readFile(filePath, 'utf8', (err, data) => {
         if (err) {
@@ -23,8 +26,25 @@ const server = http.createServer((req, res) => {
         res.write(data);
         res.end();
       });
+    } else if (req.url === '/users') {
+      db.all('SELECT * FROM users', [], (err, rows) => {
+        if (err) {
+          console.error(err);
+          res.writeHead(500, { 'Content-Type': 'text/plain' });
+          res.end('Internal Server Error');
+          return;
+        }
+        let html = `<html><body><h2>User List</h2><ul>`;
+        rows.forEach(row => {
+          html += `<li>${row.username}</li>`;
+        });
+        html += `</ul></body></html>`;
+
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        res.write(html);
+        res.end();
+      });
     } else {
-      // 다른 GET 요청에 대한 처리 (예: CSS 파일 로드 등)
       const filePath = path.join(__dirname, 'public', req.url);
       fs.readFile(filePath, (err, data) => {
         if (err) {
@@ -33,7 +53,6 @@ const server = http.createServer((req, res) => {
           res.end('File not found');
           return;
         }
-        // 파일의 확장자에 따라 Content-Type 설정
         const contentType = getContentType(filePath);
         res.writeHead(200, { 'Content-Type': contentType });
         res.write(data);
@@ -47,47 +66,86 @@ const server = http.createServer((req, res) => {
         body += data.toString();
       });
       req.on('end', () => {
-        // POST 요청으로 받은 데이터 파싱
         const { username, password } = querystring.parse(body);
-        
-        // 간단한 예시로 사용자를 배열에 저장
-        users.push({ username, password });
-        
-        // 회원가입 성공 메시지 응답
-        const html = `<!DOCTYPE html>
-          <html lang="en">
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Signup Success</title>
-          </head>
-          <body>
-            <h2>Signup Success</h2>
-            <p>Username: ${username}</p>
-          </body>
-          </html>`;
-        
-        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        res.write(html);
-        res.end();
+
+        db.run('INSERT INTO users (username, password) VALUES (?, ?)', [username, password], (err) => {
+          if (err) {
+            console.error(err);
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end('Internal Server Error');
+            return;
+          }
+
+          const html = `<!DOCTYPE html>
+            <html lang="en">
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Signup Success</title>
+            </head>
+            <body>
+              <h2>Signup Success</h2>
+              <p>Username: ${username}</p>
+            </body>
+            </html>`;
+
+          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+          res.write(html);
+          res.end();
+        });
+      });
+    } else if (req.url === '/update-password') {
+      let body = '';
+      req.on('data', data => {
+        body += data.toString();
+      });
+      req.on('end', () => {
+        const { username, newPassword } = querystring.parse(body);
+
+        db.run('UPDATE users SET password = ? WHERE username = ?', [newPassword, username], (err) => {
+          if (err) {
+            console.error(err);
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end('Internal Server Error');
+            return;
+          }
+
+          res.writeHead(200, { 'Content-Type': 'text/plain' });
+          res.end('Password updated successfully');
+        });
+      });
+    } else if (req.url === '/delete-user') {
+      let body = '';
+      req.on('data', data => {
+        body += data.toString();
+      });
+      req.on('end', () => {
+        const { username } = querystring.parse(body);
+
+        db.run('DELETE FROM users WHERE username = ?', [username], (err) => {
+          if (err) {
+            console.error(err);
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end('Internal Server Error');
+            return;
+          }
+
+          res.writeHead(200, { 'Content-Type': 'text/plain' });
+          res.end('User deleted successfully');
+        });
       });
     }
   } else {
-    // 지원하지 않는 메서드에 대한 처리
     res.writeHead(405, { 'Content-Type': 'text/plain' });
     res.end('Method Not Allowed');
   }
 });
 
-// 서버 실행
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}/`);
 });
 
-// Content-Type 설정을 위한 함수
-//! 없어도 되지만 사용자 경험의 향상과 보안을 위해 매우 유용하고 권장되는 기능
-//? 얘가 없고 선언을 안 해주니까 css 파일이 연결이 안됨.
 function getContentType(filePath) {
   const extname = path.extname(filePath);
   switch (extname) {
