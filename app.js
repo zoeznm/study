@@ -26,6 +26,7 @@ const server = http.createServer((req, res) => {
         res.write(data);
         res.end();
       });
+      // ! READ
     } else if (req.url === '/users') {
       db.all('SELECT * FROM users', [], (err, rows) => {
         if (err) {
@@ -67,7 +68,7 @@ const server = http.createServer((req, res) => {
       });
       req.on('end', () => {
         const { username, password } = querystring.parse(body);
-
+        // ! CREATE
         db.run('INSERT INTO users (username, password) VALUES (?, ?)', [username, password], (err) => {
           if (err) {
             console.error(err);
@@ -101,7 +102,7 @@ const server = http.createServer((req, res) => {
       });
       req.on('end', () => {
         const { username, newPassword } = querystring.parse(body);
-
+        // ! UPDATE
         db.run('UPDATE users SET password = ? WHERE username = ?', [newPassword, username], (err) => {
           if (err) {
             console.error(err);
@@ -121,7 +122,7 @@ const server = http.createServer((req, res) => {
       });
       req.on('end', () => {
         const { username } = querystring.parse(body);
-
+        // ! DELETE
         db.run('DELETE FROM users WHERE username = ?', [username], (err) => {
           if (err) {
             console.error(err);
