@@ -43,8 +43,8 @@ const server = http.createServer((req, res) => {
   } else if (req.method === 'POST') {
     if (req.url === '/signup') {
       let body = '';
-      req.on('data', chunk => {
-        body += chunk.toString();
+      req.on('data', data => {
+        body += data.toString();
       });
       req.on('end', () => {
         // POST 요청으로 받은 데이터 파싱
@@ -86,6 +86,8 @@ server.listen(PORT, () => {
 });
 
 // Content-Type 설정을 위한 함수
+//! 없어도 되지만 사용자 경험의 향상과 보안을 위해 매우 유용하고 권장되는 기능
+//? 얘가 없고 선언을 안 해주니까 css 파일이 연결이 안됨.
 function getContentType(filePath) {
   const extname = path.extname(filePath);
   switch (extname) {
