@@ -1,0 +1,50 @@
+/* <h2>Signup Form</h2>
+<form method="POST" action="/signup">
+  <label for="username">Username:</label><br>
+  <input type="text" id="username" name="username" required><br>
+  <label for="password">Password:</label><br>
+  <input type="password" id="password" name="password" required><br><br>
+  <button type="submit">Sign Up</button>
+</form> */
+body {
+  padding-top: 150px;
+}
+form {
+  position: relative;
+  margin: 0 auto;
+  width: 500px;
+  height: 300px;
+  background-color: #eee;
+}
+
+label, input {
+  position: absolute;
+  left: 180px;
+}
+h2 {
+  position: absolute;
+  top: 180px;
+  left: 770px;
+  z-index: 1;
+}
+form > label:first-child {
+  position: absolute;
+  top: 100px;
+}
+#username {
+  position: absolute;
+  top:120px;
+}
+#pw {
+  position: absolute;
+  top: 150px;
+}
+#password {
+  position: absolute;
+  top: 170px;
+}
+button {
+  position: absolute;
+  top: 220px;
+  left: 180px;
+}
